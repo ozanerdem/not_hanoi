@@ -145,9 +145,7 @@ constraint forall(t in 0..T-1, b in Blocks)(
 % GOAL %
 %%%%%%%%
 
-constraint peg[block0, T] = peg[block1, T];
-constraint peg[block0, T] = peg[block2, T];
-constraint peg[block0, T] = peg[block3, T];
+constraint peg[block0, T] = peg[block1, T] = peg[block2, T] = peg[block3, T];
 constraint peg[block0, T] != peg0;
 
 %%%%%%%%%%%%
