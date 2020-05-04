@@ -64,7 +64,7 @@ constraint forall(t in 0..T, b in Blocks)(
 );
 
 constraint forall(t in 0..T, p in Pegs)(
-    occupied[p, t] <-> bool_clause([peg[b,t] == p | b in Blocks], [])
+    bool_clause_reif([peg[b,t] == p | b in Blocks], [], occupied[p, t])
 );
 
 % This is not an equivalence, as topblock is only meaningful for
@@ -122,12 +122,8 @@ constraint forall(t in 0..T-1, b in Blocks, p in Pegs)(
 );
 
 % Project the ternary move variable to the binary one
-constraint forall(t in 0..T-1, b in Blocks, p in Pegs)(
-    move[b, p, t] -> moved[b, t]
-);
-% Inverse of the projection
 constraint forall(t in 0..T-1, b in Blocks)(
-   bool_clause([move[b, p, t] | p in Pegs], [moved[b,t]])
+   bool_clause_reif([move[b, p, t] | p in Pegs], [], [moved[b,t]])
 );
 
 % Frame 
@@ -136,6 +132,7 @@ constraint forall(t in 0..T-1, b in Blocks)(
                        level[b, t + 1] = level[b, t]
 );
 
+% Pick only one action
 % TODO Does disjunctive make sense here?
 constraint forall(t in 0..T-1, b in Blocks)(
     moved[b, t]
