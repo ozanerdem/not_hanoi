@@ -30,10 +30,15 @@ array[Blocks, Pegs, 0..T-1] of var bool : move_to_block;
 array[Blocks, Pegs, 0..T-1] of var bool : move_to_peg;
 % Peg has some block(s) on it
 array[Pegs, 0..T] of var bool : occupied;
+
 % This is the level of a block when you put it on an empty peg.
 % Think of a better name.
-array[Blocks] of Levels : naturalposition = [level0, level1, level2, level3];
-
+% This should be ideally automatically generated. For now, just pick
+% the one mathces your #blocks
+array[Blocks] of Levels : naturalposition = [level0, level1, level2, level3, level4, level5];
+%array[Blocks] of Levels : naturalposition = [level0, level1, level2, level3, level4];
+%array[Blocks] of Levels : naturalposition = [level0, level1, level2, level3];
+%array[Blocks] of Levels : naturalposition = [level0, level1, level2];
 
 %%%%%%%%%%%%%%%%%
 % INITIAL STATE %
@@ -92,6 +97,7 @@ constraint forall(t in 0..T-1, b, top in Blocks, p in Pegs)(
 
 constraint forall(t in 0..T-1, b, tb, top in Blocks, p in Pegs)(
     move_to_peg[b, p, t] ->  not occupied[p, t] \/ 
+                             topblock[p, t] != tb \/
                              (topblock[p, t] = tb /\
                               level[tb, t] < naturalposition[b])
 
@@ -123,7 +129,7 @@ constraint forall(t in 0..T-1, b in Blocks, p in Pegs)(
 
 % Project the ternary move variable to the binary one
 constraint forall(t in 0..T-1, b in Blocks)(
-   bool_clause_reif([move[b, p, t] | p in Pegs], [], [moved[b,t]])
+   bool_clause_reif([move[b, p, t] | p in Pegs], [], moved[b,t])
 );
 
 % Frame 
@@ -145,13 +151,17 @@ constraint forall(t in 0..T-1, b in Blocks)(
 % GOAL %
 %%%%%%%%
 
-constraint peg[block0, T] = peg[block1, T] = peg[block2, T] = peg[block3, T] != peg0;
+constraint forall(b in Blocks)(
+    peg[b, T] = peg[block0, T]
+);
+
+constraint peg[block0, T] != peg[block0, 0];
 
 %%%%%%%%%%%%
 % EPILOGUE %
 %%%%%%%%%%%%
 
-solve satisfy;
+solve :: int_search([move[b, p, t] | t in 0..T-1, b in Blocks, p in Pegs], first_fail, indomain_min, complete) satisfy;
 
 output [if fix(move[b, p, t]) then "Move \(b) to \(p) at \(t)\n" else ""
         endif | t in 0..T-1, b in Blocks, p in Pegs];
